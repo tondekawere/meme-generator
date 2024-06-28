@@ -11,7 +11,8 @@ const MemeImageWrapper = styled(Box)({
 
 const MemeImage = styled("img")({
   width: "100%",
-  height: "auto",
+  height: "70vh",
+  objectFit: "contain",
 });
 
 const MemeText = styled("div")(({ position }) => ({
@@ -22,7 +23,7 @@ const MemeText = styled("div")(({ position }) => ({
   fontSize: "2rem",
   fontWeight: "bold",
   textShadow: "2px 2px 4px #000",
-  width: "80%", 
+  width: "80%",
   wordWrap: "break-word",
   whiteSpace: "pre-wrap",
   top: position === "top" ? "10px" : "unset",
@@ -32,7 +33,7 @@ const MemeText = styled("div")(({ position }) => ({
 const InputWrapper = styled(Box)({
   display: "grid",
   gap: "10px",
-  marginTop:"5%",
+  marginTop: "5%",
   marginBottom: "20px",
   "@media (min-width: 600px)": {
     display: "flex",
@@ -45,12 +46,29 @@ const MemeGenerator = () => {
   const [bottomText, setBottomText] = useState("");
   const [generatedTopText, setGeneratedTopText] = useState("");
   const [generatedBottomText, setGeneratedBottomText] = useState("");
-  const [memeImage] = useState("/memeimg.png"); 
+  const [memeImage, setMemeImage] = useState("/memeimg.png");
   const [showMeme, setShowMeme] = useState(false);
 
-  const generateMeme = () => {
+  const fetchMemeImage = async () => {
+    try {
+      const response = await fetch("https://api.imgflip.com/get_memes");
+      const data = await response.json();
+      if (data.success) {
+        const memes = data.data.memes;
+        const randomMeme = memes[Math.floor(Math.random() * memes.length)];
+        setMemeImage(randomMeme.url);
+      } else {
+        console.error("Failed to fetch memes from API");
+      }
+    } catch (error) {
+      console.error("Error fetching meme images:", error);
+    }
+  };
+
+  const generateMeme = async () => {
     setGeneratedTopText(topText);
     setGeneratedBottomText(bottomText);
+    await fetchMemeImage();
     setShowMeme(true);
   };
 
@@ -83,13 +101,15 @@ const MemeGenerator = () => {
           background: "linear-gradient(90deg, #672280 1.18%, #A626D3 100%)",
           textTransform: "none",
           fontWeight: "700",
-          fontFamily: "Karla, sans-serif",fontSize:"18px", letterSpacing:"-1px",
+          fontFamily: "Karla, sans-serif",
+          fontSize: "18px",
+          letterSpacing: "-1px",
         }}
       >
         Get a new meme image 🖼
       </Button>
       {showMeme && (
-        <MemeImageWrapper style={{ display: "block" }}>
+        <MemeImageWrapper style={{ display: "block", marginBottom: "5%" }}>
           <MemeImage src={memeImage} alt="Generated Meme" />
           <MemeText position="top">{generatedTopText}</MemeText>
           <MemeText position="bottom">{generatedBottomText}</MemeText>
